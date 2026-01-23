@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>AWS Login Demo</title>
+  <link rel="stylesheet" href="./styles.css" />
+</head>
+<body>
+  <main class="container">
+    <h1 class="title">Demo Web Site</h1>
+
+    <!-- 최초 화면: username/password 에디터 박스 2개 + 로그인 버튼 -->
+    <section id="loginView" class="card">
+      <h2 class="section-title">로그인</h2>
+
+      <label class="label" for="username">User name</label>
+      <input id="username" class="input" type="text" autocomplete="username" />
+
+      <label class="label" for="password">Password</label>
+      <input id="password" class="input" type="password" autocomplete="current-password" />
+
+      <button id="loginBtn" class="btn" type="button">로그인</button>
+    </section>
+
+    <!-- 로그인 성공 화면 -->
+    <section id="successView" class="card hidden" aria-live="polite">
+      <h2 class="section-title">상태</h2>
+      <p class="success-text">로그인 성공</p>
+      <button id="backBtn" class="btn secondary" type="button">처음으로</button>
+    </section>
+  </main>
+
+  <!-- 로그인 실패 팝업(모달) -->
+  <div id="modalOverlay" class="modal-overlay hidden" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+    <div class="modal">
+      <h3 id="modalTitle" class="modal-title">로그인 실패</h3>
+      <p class="modal-body">user name 또는 password가 올바르지 않습니다.</p>
+      <button id="modalCloseBtn" class="btn" type="button">닫기</button>
+    </div>
+  </div>
+
+  <script src="./app.js"></script>
+</body>
+</html>
