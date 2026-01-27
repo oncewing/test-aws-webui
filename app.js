@@ -16,6 +16,8 @@ const backBtn = el("backBtn");
 const modalOverlay = el("modalOverlay");
 const modalCloseBtn = el("modalCloseBtn");
 
+console.log("app.js version: 2026-01-27-1");
+
 // 화면 전환 유틸
 function showLoginView() {
   successView.classList.add("hidden");
