@@ -33,6 +33,8 @@ function showSuccessView() {
 }
 
 function openFailModal() {
+  
+  console.trace("openFailModal");
   modalOverlay.classList.remove("hidden");
   modalCloseBtn.focus();
 }
