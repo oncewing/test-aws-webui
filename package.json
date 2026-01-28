@@ -1,0 +1,35 @@
+{
+  "name": "test-aws-webui",
+  "version": "1.0.0",
+  "description": "TEST AWS",
+  "main": "app.js",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/oncewing/test-aws-webui.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/oncewing/test-aws-webui/issues"
+  },
+  "homepage": "https://github.com/oncewing/test-aws-webui#readme",
+  "devDependencies": {
+    "@aws-amplify/backend": "^1.20.0",
+    "@aws-amplify/backend-cli": "^1.8.2",
+    "aws-cdk-lib": "^2.234.1",
+    "constructs": "^10.4.5",
+    "esbuild": "^0.27.2",
+    "tsx": "^4.21.0",
+    "typescript": "^5.9.3",
+    "vite": "^7.3.1"
+  },
+  "dependencies": {
+    "aws-amplify": "^6.16.0"
+  }
+}

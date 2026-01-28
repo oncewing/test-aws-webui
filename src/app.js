@@ -1,6 +1,5 @@
-// ===== 임시 데모용 계정(나중에 AWS Cognito로 교체) =====
-const DEMO_USER = "admin";
-const DEMO_PASS = "1234";
+import { Amplify } from "aws-amplify";
+import { signIn } from "aws-amplify/auth";
 
 const el = (id) => document.getElementById(id);
 
@@ -16,9 +15,13 @@ const backBtn = el("backBtn");
 const modalOverlay = el("modalOverlay");
 const modalCloseBtn = el("modalCloseBtn");
 
-console.log("app.js version: 2026-01-27-1");
+async function initAmplify() {
+  const res = await fetch("/amplify_outputs.json", { cache: "no-store" });
+  if (!res.ok) throw new Error("Failed to load amplify_outputs.json");
+  const outputs = await res.json();
+  Amplify.configure(outputs);
+}
 
-// 화면 전환 유틸
 function showLoginView() {
   successView.classList.add("hidden");
   loginView.classList.remove("hidden");
@@ -36,7 +39,6 @@ function showSuccessView() {
 
 function openFailModal() {
   
-  console.trace("openFailModal");
   modalOverlay.classList.remove("hidden");
   modalCloseBtn.focus();
 }
@@ -46,17 +48,24 @@ function closeFailModal() {
   showLoginView();
 }
 
-// 로그인 처리(현재는 프론트에서만 체크)
-function handleLogin() {
-  const u = usernameInput.value.trim();
+async function handleLogin() {
+  const u = usernameInput.value.trim(); // email
   const p = passwordInput.value;
 
-  const ok = (u === DEMO_USER && p === DEMO_PASS);
+  try {
+    const r = await signIn({ username: u, password: p });
 
-  if (ok) {
-    showSuccessView(); // 4. 성공 시 "로그인 성공"
-  } else {
-    openFailModal();   // 5. 실패 시 팝업
+    // MFA/비밀번호 변경 등 추가 단계면 여기서 확장 가능
+    if (r?.nextStep?.signInStep && r.nextStep.signInStep !== "DONE") {
+      console.warn("Additional step required:", r.nextStep);
+      openFailModal();
+      return;
+    }
+
+    showSuccessView();
+  } catch (e) {
+    console.error(e);
+    openFailModal();
   }
 }
 
@@ -78,5 +87,5 @@ modalOverlay.addEventListener("click", (e) => {
   });
 });
 
-// 최초 진입 화면
+await initAmplify();
 showLoginView();
