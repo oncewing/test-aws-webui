@@ -18,7 +18,6 @@ const newPasswordConfirmInput = el("newPasswordConfirm");
 const loginBtn = el("loginBtn");
 const changePwBtn = el("changePwBtn");
 const changePwCancelBtn = el("changePwCancelBtn");
-const backBtn = el("backBtn");
 const logoutBtn = el("logoutBtn");
 
 // Modal
@@ -177,7 +176,6 @@ changePwCancelBtn.addEventListener("click", () => {
   resetAll();
 });
 
-backBtn.addEventListener("click", resetAll);
 
 modalCloseBtn.addEventListener("click", closeFailModal);
 
