@@ -1,5 +1,5 @@
 import { Amplify } from "aws-amplify";
-import { signIn, confirmSignIn } from "aws-amplify/auth";
+import { signIn, confirmSignIn, signOut } from "aws-amplify/auth";
 
 const el = (id) => document.getElementById(id);
 
@@ -19,6 +19,7 @@ const loginBtn = el("loginBtn");
 const changePwBtn = el("changePwBtn");
 const changePwCancelBtn = el("changePwCancelBtn");
 const backBtn = el("backBtn");
+const logoutBtn = el("logoutBtn");
 
 // Modal
 const modalOverlay = el("modalOverlay");
@@ -156,9 +157,20 @@ async function handleChangePassword() {
   }
 }
 
+async function handleLogout() {
+  try {
+    await signOut(); // Cognito 세션 종료
+  } catch (e) {
+    console.error("signOut error", e);
+  } finally {
+    resetAll(); // 최초 로그인 화면으로
+  }
+}
+
 /** ===== Events ===== */
 loginBtn.addEventListener("click", handleLogin);
 changePwBtn.addEventListener("click", handleChangePassword);
+logoutBtn.addEventListener("click", handleLogout);
 
 changePwCancelBtn.addEventListener("click", () => {
   // 사용자가 비번 변경을 취소하면 로그인 완료 불가 → 최초로 리셋
