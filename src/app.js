@@ -3,23 +3,34 @@ import { signIn, confirmSignIn } from "aws-amplify/auth";
 
 const el = (id) => document.getElementById(id);
 
+// Views
 const loginView = el("loginView");
+const changePwView = el("changePwView");
 const successView = el("successView");
 
+// Inputs
 const usernameInput = el("username");
 const passwordInput = el("password");
+const newPasswordInput = el("newPassword");
+const newPasswordConfirmInput = el("newPasswordConfirm");
 
+// Buttons
 const loginBtn = el("loginBtn");
+const changePwBtn = el("changePwBtn");
+const changePwCancelBtn = el("changePwCancelBtn");
 const backBtn = el("backBtn");
 
+// Modal
 const modalOverlay = el("modalOverlay");
 const modalCloseBtn = el("modalCloseBtn");
+const modalTitle = el("modalTitle");
+const modalBody = el("modalBody");
 
-// (선택) 모달 메시지 바꾸고 싶으면 요소를 하나 더 잡으세요
-// const modalBody = document.querySelector(".modal-body");
-
+// Auth state
 let pendingNewPassword = false;
+let lockedUsername = "";
 
+/** ===== Init Amplify ===== */
 async function initAmplify() {
   const res = await fetch("/amplify_outputs.json", { cache: "no-store" });
   if (!res.ok) throw new Error("Failed to load amplify_outputs.json");
@@ -27,101 +38,154 @@ async function initAmplify() {
   Amplify.configure(outputs);
 }
 
-function showLoginView() {
-  successView.classList.add("hidden");
-  loginView.classList.remove("hidden");
+/** ===== View Helpers ===== */
+function showOnly(view) {
+  [loginView, changePwView, successView].forEach((v) => v.classList.add("hidden"));
+  view.classList.remove("hidden");
+}
 
-  // 입력값 초기화(요구사항: 실패 후 팝업 닫으면 최초 화면)
+function resetAll() {
+  pendingNewPassword = false;
+  lockedUsername = "";
+
+  usernameInput.disabled = false;
+
   usernameInput.value = "";
   passwordInput.value = "";
-  pendingNewPassword = false;
+  newPasswordInput.value = "";
+  newPasswordConfirmInput.value = "";
 
+  showOnly(loginView);
   usernameInput.focus();
 }
 
-function showSuccessView() {
-  loginView.classList.add("hidden");
-  successView.classList.remove("hidden");
+function showSuccess() {
+  showOnly(successView);
 }
 
-function openFailModal(message) {
-  // 기본 문구를 유지하면서 필요 시 message를 받도록 확장
-  if (message) {
-    const body = document.querySelector(".modal-body");
-    if (body) body.textContent = message;
-  }
+function showChangePassword(username) {
+  pendingNewPassword = true;
+  lockedUsername = username;
+
+  usernameInput.value = username;
+  usernameInput.disabled = true; // 사용자 혼동 방지
+
+  // 기존 password는 임시 비번이었으므로 비움
+  passwordInput.value = "";
+
+  newPasswordInput.value = "";
+  newPasswordConfirmInput.value = "";
+
+  showOnly(changePwView);
+  newPasswordInput.focus();
+}
+
+/** ===== Modal Helpers ===== */
+function openFailModal(title, message) {
+  modalTitle.textContent = title || "로그인 실패";
+  modalBody.textContent = message || "user name 또는 password가 올바르지 않습니다.";
   modalOverlay.classList.remove("hidden");
   modalCloseBtn.focus();
 }
 
 function closeFailModal() {
   modalOverlay.classList.add("hidden");
-  showLoginView();
+  // 요구사항: 실패 팝업 닫으면 최초 화면
+  resetAll();
 }
 
+/** ===== Auth Logic ===== */
 async function handleLogin() {
-  const u = usernameInput.value.trim(); // email
+  const u = usernameInput.value.trim();
   const p = passwordInput.value;
 
+  if (!u || !p) {
+    openFailModal("입력 오류", "Email과 Password를 입력해 주세요.");
+    return;
+  }
+
   try {
-    // 1) 이미 NEW_PASSWORD_REQUIRED 상태면 confirmSignIn으로 처리
-    if (pendingNewPassword) {
-      await confirmSignIn({ challengeResponse: p });
-      showSuccessView();
-      return;
-    }
-
-    // 2) 일반 로그인 시도
     const r = await signIn({ username: u, password: p });
-
     const step = r?.nextStep?.signInStep;
 
     if (!step || step === "DONE") {
-      showSuccessView();
+      showSuccess();
       return;
     }
 
-    // 3) 새 비밀번호 요구 처리
     if (step === "CONFIRM_SIGN_IN_WITH_NEW_PASSWORD_REQUIRED") {
-      pendingNewPassword = true;
-
-      // 사용자 안내: 지금 입력칸에 새 비밀번호를 입력하고 다시 로그인 누르기
-      passwordInput.value = "";
-      passwordInput.focus();
-
-      openFailModal("임시 비밀번호로 로그인되었습니다. 새 비밀번호를 입력한 뒤 다시 '로그인'을 눌러주세요.");
-      // 팝업을 닫으면 showLoginView()가 호출되어 초기화되므로,
-      // 안내 팝업을 쓰려면 close 동작을 조금 바꾸는 게 더 좋습니다.
-      // 최소 변경을 원하면 팝업 대신 화면 문구로 안내하는 방식도 가능.
+      // 임시 비밀번호 로그인 성공 → 새 비밀번호 설정 화면으로
+      showChangePassword(u);
       return;
     }
 
-    // 4) 그 외 단계(예: MFA)는 아직 미구현 → 실패 처리
-    console.warn("Additional step required:", r.nextStep);
-    openFailModal("추가 인증 단계가 필요합니다. (MFA/인증코드 등) 현재 데모에서는 미지원");
+    // 향후 MFA 등 확장 가능
+    console.warn("Unhandled sign-in step:", r?.nextStep);
+    openFailModal("추가 인증 필요", "추가 인증 단계가 필요합니다. (현재 데모에서는 미지원)");
   } catch (e) {
     console.error(e);
-    openFailModal("로그인 실패: user name 또는 password가 올바르지 않습니다.");
+    openFailModal("로그인 실패", "Email 또는 Password가 올바르지 않습니다.");
   }
 }
 
-// 이벤트 바인딩
+async function handleChangePassword() {
+  if (!pendingNewPassword) {
+    resetAll();
+    return;
+  }
+
+  const np = newPasswordInput.value;
+  const npc = newPasswordConfirmInput.value;
+
+  if (!np || !npc) {
+    openFailModal("입력 오류", "새 비밀번호와 확인 비밀번호를 입력해 주세요.");
+    return;
+  }
+  if (np !== npc) {
+    openFailModal("입력 오류", "새 비밀번호와 확인 비밀번호가 일치하지 않습니다.");
+    return;
+  }
+
+  try {
+    // NEW_PASSWORD_REQUIRED 단계 완료
+    await confirmSignIn({ challengeResponse: np });
+    showSuccess();
+  } catch (e) {
+    console.error(e);
+    openFailModal("비밀번호 변경 실패", "비밀번호 정책을 확인하고 다시 시도해 주세요.");
+  }
+}
+
+/** ===== Events ===== */
 loginBtn.addEventListener("click", handleLogin);
-backBtn.addEventListener("click", showLoginView);
+changePwBtn.addEventListener("click", handleChangePassword);
+
+changePwCancelBtn.addEventListener("click", () => {
+  // 사용자가 비번 변경을 취소하면 로그인 완료 불가 → 최초로 리셋
+  resetAll();
+});
+
+backBtn.addEventListener("click", resetAll);
 
 modalCloseBtn.addEventListener("click", closeFailModal);
 
-// 모달 바깥 클릭 시 닫기(선택 사항)
+// 모달 바깥 클릭 시 닫기
 modalOverlay.addEventListener("click", (e) => {
   if (e.target === modalOverlay) closeFailModal();
 });
 
-// Enter 키로 로그인
+// Enter 키 처리
 [usernameInput, passwordInput].forEach((inp) => {
   inp.addEventListener("keydown", (e) => {
     if (e.key === "Enter") handleLogin();
   });
 });
+[newPasswordInput, newPasswordConfirmInput].forEach((inp) => {
+  inp.addEventListener("keydown", (e) => {
+    if (e.key === "Enter") handleChangePassword();
+  });
+});
 
+/** ===== Boot ===== */
 await initAmplify();
-showLoginView();
+resetAll();

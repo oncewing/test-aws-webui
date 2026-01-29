@@ -10,18 +10,34 @@
   <main class="container">
     <h1 class="title">Demo Web Site</h1>
 
-
-    <!-- 최초 화면: username/password 에디터 박스 2개 + 로그인 버튼 -->
+    <!-- 로그인 화면 -->
     <section id="loginView" class="card">
       <h2 class="section-title">로그인</h2>
 
-      <label class="label" for="username">User name</label>
+      <label class="label" for="username">Email</label>
       <input id="username" class="input" type="text" autocomplete="username" />
 
       <label class="label" for="password">Password</label>
       <input id="password" class="input" type="password" autocomplete="current-password" />
 
       <button id="loginBtn" class="btn" type="button">로그인</button>
+    </section>
+
+    <!-- 비밀번호 변경 화면 (임시 비번 로그인 후) -->
+    <section id="changePwView" class="card hidden" aria-live="polite">
+      <h2 class="section-title">비밀번호 변경</h2>
+      <p class="helper-text">
+        최초 로그인입니다. 새 비밀번호를 설정해 주세요.
+      </p>
+
+      <label class="label" for="newPassword">New password</label>
+      <input id="newPassword" class="input" type="password" autocomplete="new-password" />
+
+      <label class="label" for="newPasswordConfirm">Confirm new password</label>
+      <input id="newPasswordConfirm" class="input" type="password" autocomplete="new-password" />
+
+      <button id="changePwBtn" class="btn" type="button">비밀번호 변경</button>
+      <button id="changePwCancelBtn" class="btn secondary" type="button">취소</button>
     </section>
 
     <!-- 로그인 성공 화면 -->
@@ -32,15 +48,16 @@
     </section>
   </main>
 
-  <!-- 로그인 실패 팝업(모달) -->
+  <!-- 실패 팝업(모달) -->
   <div id="modalOverlay" class="modal-overlay hidden" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
     <div class="modal">
       <h3 id="modalTitle" class="modal-title">로그인 실패</h3>
-      <p class="modal-body">user name 또는 password가 올바르지 않습니다.</p>
+      <p id="modalBody" class="modal-body">user name 또는 password가 올바르지 않습니다.</p>
       <button id="modalCloseBtn" class="btn" type="button">닫기</button>
     </div>
   </div>
 
+  <!-- Vite 엔트리 -->
   <script type="module" src="/src/app.js"></script>
 </body>
 </html>
